@@ -1,0 +1,247 @@
+{
+	"variables": [],
+	"info": {
+		"name": "Bulk API 2.0",
+		"_postman_id": "aa402eda-3bd8-a1a9-2f50-480f2d32ed32",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "get sid & endpoint",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"let parser = new DOMParser();",
+							"let xmlDoc = parser.parseFromString(responseBody,\"text/xml\");",
+							"let sid = xmlDoc.getElementsByTagName(\"sessionId\")[0].childNodes[0].nodeValue;",
+							"postman.setEnvironmentVariable(\"sessionId\", sid);",
+							"let url = xmlDoc.getElementsByTagName(\"serverUrl\")[0].childNodes[0].nodeValue;",
+							"let urlPieces = url.split('/services');",
+							"postman.setEnvironmentVariable(\"endpoint\", urlPieces[0]);",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "https://test.salesforce.com/services/Soap/u/{{apiVersion}}",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "text/xml",
+						"description": ""
+					},
+					{
+						"key": "SOAPAction",
+						"value": "tacos",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:urn=\"urn:partner.soap.sforce.com\">\n   <soapenv:Header>\n   </soapenv:Header>\n   <soapenv:Body>\n      <urn:login>\n         <urn:username>{{username}}</urn:username>\n         <urn:password>{{password}}</urn:password>\n      </urn:login>\n   </soapenv:Body>\n</soapenv:Envelope>"
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "createJob",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"let jsonData = JSON.parse(responseBody);",
+							"let id = jsonData.id;",
+							"postman.setEnvironmentVariable(\"jobId\", id);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{endpoint}}/services/data/v{{apiVersion}}/jobs/ingest/\n",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json; charset=UTF-8",
+						"description": ""
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{sessionId}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": " {\n        \"object\": \"Contact\",\n        \"contentType\": \"CSV\",\n        \"operation\": \"insert\"\n }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "loadData",
+			"request": {
+				"url": "{{endpoint}}/services/data/v{{apiVersion}}/jobs/ingest/{{jobId}}/batches\n",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "text/csv",
+						"description": ""
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{sessionId}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "FirstName,LastName,Title,Birthdate\nMarley, Paige,Senior Robot,1999-06-07Z\nLaurel, Meyer,Chief Robot,2002-06-07Z\nGabe, Meyer,Chief Chief,1982-06-07Z"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "closeJob",
+			"request": {
+				"url": "{{endpoint}}/services/data/v{{apiVersion}}/jobs/ingest/{{jobId}}\n",
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json; charset=UTF-8",
+						"description": ""
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{sessionId}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"state\" : \"UploadComplete\"\n}\n"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "checkStatus",
+			"request": {
+				"url": "{{endpoint}}/services/data/v{{apiVersion}}/jobs/ingest/{{jobId}}\n",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json; charset=UTF-8",
+						"description": ""
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{sessionId}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"state\" : \"UploadComplete\"\n}\n"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "getResults",
+			"request": {
+				"url": "{{endpoint}}/services/data/v{{apiVersion}}/jobs/ingest/{{jobId}}/successfulResults\n",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json; charset=UTF-8",
+						"description": ""
+					},
+					{
+						"key": "Accept",
+						"value": "text/csv",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{sessionId}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"state\" : \"UploadComplete\"\n}\n"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "getFailures",
+			"request": {
+				"url": "{{endpoint}}/services/data/v{{apiVersion}}/jobs/ingest/{{jobId}}/failedResults\n",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json; charset=UTF-8",
+						"description": ""
+					},
+					{
+						"key": "Accept",
+						"value": "text/csv",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{sessionId}}",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"state\" : \"UploadComplete\"\n}\n"
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}
