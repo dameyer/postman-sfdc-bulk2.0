@@ -1,6 +1,6 @@
 # postman-sfdc-bulk2.0
 
-import collection, environment, & test run into postman
+import collection & environment into postman
 
 set your username & password in the environment
 
